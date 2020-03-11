@@ -1,15 +1,5 @@
 from datetime import datetime
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
-app = Flask(__name__)
-
-# Setting Up Development DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dev.db'
-app.config['SQLALCHEMY_ECHO'] = True
-
-# Create DB Instance 
-db = SQLAlchemy(app)
+from sweats import db
 
 class Customer(db.Model):
     __tablename__= 'customers'
@@ -80,11 +70,3 @@ class Warehouse(db.Model):
 
     def __repr__(self):
         return f"Warehouse('{self.id}', '{self.city}')"
-
-@app.route("/")
-def home():
-    return '<h1>Home Page</h1>'
-
-
-if __name__=='__main__':
-    app.run(debug=True)
