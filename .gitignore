@@ -1,2 +1,5 @@
 dev.db
 __pycache__
+.vscode
+forms.py
+routes.py

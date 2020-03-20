@@ -1,51 +1,55 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from sweats import db
+
+def calShipDate():
+    return datetime.utcnow() + timedelta(days=7)
 
 class Customer(db.Model):
     __tablename__= 'customers'
     id = db.Column(db.Integer , primary_key=True)
     name = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+    image_file = db.Column(db.String(20), nullable=False, default='default.jpg') 
     city = db.Column(db.String(20), nullable=False)
-    
-    # 'owner' is the owner of an order
-    # customer-order : one-many
     orders = db.relationship('Order' , backref='owner' , lazy=True)
 
     def __repr__(self):
-        return f"Customer('{self.id}', '{self.name}', '{self.city}')"
+        return f"Customer('{self.id}', '{self.name}',  '{self.email}', '{self.image_file}', '{self.city}')"
 
 class Order(db.Model):
     __tablename__ = 'orders'
     id = db.Column(db.Integer , primary_key=True)
     order_date = db.Column(db.DateTime , default=datetime.utcnow)
+
+    # sum of all amount of each individual OrderItem
+    total_amount = db.Column(db.Integer , nullable=False)
     customer_id = db.Column(db.Integer , db.ForeignKey('customers.id') , nullable=False)
-    order_amount = db.Column(db.Integer , nullable=False)
-
-    # Order-OrderItem : One-Many
-    orderitems = db.relationship('OrderItem' , backref='order' , lazy=True)
-
-    # order-shipment : one-many
+    orderitems = db.relationship('Cart' , backref='order' , lazy=True)
     shipments = db.relationship('Shipment' , backref='order' , lazy=True)
 
     def __repr__(self):
         return f"Order('{self.id}', '{self.order_date}', '{self.customer_id}' , '{self.order_amount}')"
 
-class OrderItem(db.Model):
-    __tablename__ = 'orderitems'
+class Cart(db.Model):
+    __tablename__ = 'cartitems'
     order_id = db.Column(db.Integer , db.ForeignKey('orders.id') , primary_key=True)
     item_id = db.Column(db.Integer , db.ForeignKey('items.id') , primary_key=True)
     quantity = db.Column(db.Integer , nullable=False)
 
     def __repr__(self):
-        return f"Order-Item('{self.order_id}', '{self.item_id}', '{self.quantity}')"
+        return f"Cart-Item('{self.order_id}', '{self.item_id}', '{self.quantity}')"
 
 class Item(db.Model):
     __tablename__ = 'items'
     id = db.Column(db.Integer , primary_key=True)
+    category = db.Column(db.String(20), nullable=False)
+    description = db.Column(db.String(200), nullable=False)
+    image_file = db.Column(db.String(20), nullable=False)
     unit_price = db.Column(db.Integer , nullable=False)
 
     # Item-OrderItem : One-Many
-    orderitems = db.relationship('OrderItem' , backref='item' , lazy=True)
+    cartitems = db.relationship('Cart' , backref='item' , lazy=True)
 
     def __repr__(self):
         return f"Item('{self.id}', '{self.unit_price}')"
@@ -55,7 +59,9 @@ class Shipment(db.Model):
     __tablename__ = 'shipments'
     order_id = db.Column(db.Integer , db.ForeignKey('orders.id') , primary_key=True)
     warehouse_id = db.Column(db.Integer , db.ForeignKey('warehouses.id') , primary_key=True)
-    ship_date = db.Column(db.DateTime , default = datetime.utcnow , nullable=False)
+
+    # Shipment is done inbetween 7 days from Order
+    ship_date = db.Column(db.DateTime ,default=calShipDate, nullable=False)
 
     def __repr__(self):
         return f"Shipment('{self.order_id}', '{self.warehouse_id}', '{self.ship_date}')"
