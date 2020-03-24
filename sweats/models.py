@@ -1,16 +1,22 @@
 from datetime import datetime, timedelta
-from sweats import db
+from sweats import db, login_manager
+from flask_login import UserMixin
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Customer.query.get(int(user_id))
 
 def calShipDate():
     return datetime.utcnow() + timedelta(days=7)
 
-class Customer(db.Model):
+# UserMixin adds certain fileds to our user such as is_authenticated, etc. see documents
+class Customer(db.Model, UserMixin):
     __tablename__= 'customers'
     id = db.Column(db.Integer , primary_key=True)
     name = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    image_file = db.Column(db.String(20), nullable=False, default='default.jpg') 
+    image_file = db.Column(db.String(20), nullable=False, default='default.png')
     city = db.Column(db.String(20), nullable=False)
     orders = db.relationship('Order' , backref='owner' , lazy=True)
 
@@ -22,14 +28,14 @@ class Order(db.Model):
     id = db.Column(db.Integer , primary_key=True)
     order_date = db.Column(db.DateTime , default=datetime.utcnow)
 
-    # sum of all amount of each individual OrderItem
+    # sum of all amount of each individual Cart item
     total_amount = db.Column(db.Integer , nullable=False)
     customer_id = db.Column(db.Integer , db.ForeignKey('customers.id') , nullable=False)
-    orderitems = db.relationship('Cart' , backref='order' , lazy=True)
+    cart_items = db.relationship('Cart' , backref='order' , lazy=True)
     shipments = db.relationship('Shipment' , backref='order' , lazy=True)
 
     def __repr__(self):
-        return f"Order('{self.id}', '{self.order_date}', '{self.customer_id}' , '{self.order_amount}')"
+        return f"Order('{self.id}', '{self.order_date}', '{self.total_amount}' , '{self.customer_id}')"
 
 class Cart(db.Model):
     __tablename__ = 'cartitems'
@@ -43,16 +49,16 @@ class Cart(db.Model):
 class Item(db.Model):
     __tablename__ = 'items'
     id = db.Column(db.Integer , primary_key=True)
-    category = db.Column(db.String(20), nullable=False)
+    category = db.Column(db.String(20))
     description = db.Column(db.String(200), nullable=False)
     image_file = db.Column(db.String(20), nullable=False)
     unit_price = db.Column(db.Integer , nullable=False)
 
     # Item-OrderItem : One-Many
-    cartitems = db.relationship('Cart' , backref='item' , lazy=True)
+    cart_items = db.relationship('Cart' , backref='item' , lazy=True)
 
     def __repr__(self):
-        return f"Item('{self.id}', '{self.unit_price}')"
+        return f"Item('{self.id}', '{self.category}', '{self.description}', '{self.image_file}', '{self.unit_price}')"
 
 
 class Shipment(db.Model):
