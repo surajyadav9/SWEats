@@ -1,6 +1,9 @@
+import os
+import secrets
+from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
 from sweats import app, db, bcrypt
-from sweats.forms import RegistrationForm, LoginForm
+from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm
 from sweats.models import Customer, Order, Cart, Item, Shipment, Warehouse
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -77,8 +80,54 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route('/account')
+def save_picture(form_picture):
+
+    # Giving each picture to its own unique id
+    random_hex = secrets.token_hex(8)
+    _ , f_ext = os.path.splitext( form_picture.filename )
+    picture_filename = random_hex + f_ext
+
+    # app.root_path = /home/suraj/Desktop/SWEats/sweats
+    picture_path = os.path.join( app.root_path, 'static/profile_pics', picture_filename )
+    
+    # Resizing the profile picture
+    output_size = (125, 125)
+    im = Image.open(form_picture)
+    im.thumbnail(output_size)
+    im.save(picture_path)
+
+    return picture_filename
+
+def delete_old_picture(picture_filename):
+    picture_path = os.path.join( app.root_path, 'static/profile_pics', picture_filename )
+    os.remove(picture_path)
+
+
+@app.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        if form.picture.data:
+            
+            # Delete old pictures
+            if current_user.image_file != 'default.png':
+                delete_old_picture(current_user.image_file)
+
+            picture_file = save_picture(form.picture.data)
+            current_user.image_file = picture_file
+        current_user.name = form.name.data
+        current_user.email = form.email.data
+        current_user.city = form.city.data
+        db.session.commit()
+        flash('Account updated successfully!', 'success')
+
+        # After submiting a form, if we reload a page w/o redirecting, the browser tries to send a POST request again(i.e tries to submit the form again)
+        # redirect causes the browser to send a GET request( POST/REDIRECT/GET Pattern )
+        return redirect(url_for('account'))
+    elif request.method == 'GET':
+        form.name.data = current_user.name
+        form.email.data = current_user.email
+        form.city.data = current_user.city
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
-    return render_template('account.html', title='Account', image_file=image_file)
+    return render_template('account.html', title='Account', image_file=image_file, form=form)
