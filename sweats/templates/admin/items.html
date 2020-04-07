@@ -1,7 +1,7 @@
 {% extends "admin/home.html" %}
 
 {% block nav %}
-    <a class="nav-item nav-link" href="{{ url_for('new_item') }}">New Item</a>
+    <a class="nav-item nav-link" href="{{ url_for('new_model', model_name='item') }}">New Item</a>
 {% endblock nav %}
 
 {% block content %}

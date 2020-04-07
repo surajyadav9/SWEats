@@ -153,17 +153,22 @@ def model(model_name):
 
     return render_template('admin/'+template_name, title=title, items=items)
 
-@app.route('/admin/item/new', methods=['GET', 'POST'])
+@app.route('/admin/<model_name>/new', methods=['GET', 'POST'])
 @login_required
-def new_item():
-    form = ItemForm()
+def new_model(model_name):
+    if model_name == 'item':
+        form  = ItemForm()
+        template_name = 'new_item.html'
+        title = 'New Item'
+
     if form.validate_on_submit():
-        picture_file = save_picture(form.picture.data, "static/product_pics", 675)
-        item = Item(category=form.category.data, description=form.description.data, unit_price=form.unit_price.data, image_file=picture_file)
-        
+        if model_name == 'item':
+            picture_file = save_picture(form.picture.data, "static/product_pics", 675)
+            item = Item(category=form.category.data, description=form.description.data, unit_price=form.unit_price.data, image_file=picture_file)
+            
         # Insert to database
         db.session.add(item)
         db.session.commit()
-        flash('Item added to the database!', 'success')
-        return redirect(url_for('new_item'))
-    return render_template('admin/new_item.html', title='New Item', form=form)
+        flash(f'{model_name.capitalize()} added to the database!', 'success')
+        return redirect(url_for('new_model', model_name=model_name))
+    return render_template('admin/'+template_name, title=title, form=form)
