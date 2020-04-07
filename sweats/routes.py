@@ -2,13 +2,17 @@ import os
 import secrets
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
-from sweats import app, db, bcrypt
-from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm
-from sweats.models import Customer, Order, Cart, Item, Shipment, Warehouse
 from flask_login import login_user, current_user, logout_user, login_required
+from sweats import app, db, bcrypt
+from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm
+from sweats.models import Customer, Item, Warehouse
 
+def isAdminUser(current_user):
+    if(current_user.email == "suraj@gmail.com" and bcrypt.check_password_hash(current_user.password, "1234")):
+        return True
+    return False
 
-items = [
+items_list = [
     {
         'category':'Cloths',
         'description':'Wool cloths for children.',
@@ -32,7 +36,7 @@ items = [
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', items=items)
+    return render_template('home.html', items=items_list)
 
 @app.route('/about')
 def about():
@@ -44,7 +48,7 @@ def register():
         return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        pw_hash = bcrypt.generate_password_hash(form.password.data)
+        pw_hash = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         customer = Customer(name=form.name.data, email=form.email.data, password=pw_hash, city=form.city.data)
         db.session.add(customer)
         db.session.commit()
@@ -80,7 +84,7 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-def save_picture(form_picture):
+def save_picture(form_picture, folder, size):
 
     # Giving each picture to its own unique id
     random_hex = secrets.token_hex(8)
@@ -88,10 +92,10 @@ def save_picture(form_picture):
     picture_filename = random_hex + f_ext
 
     # app.root_path = /home/suraj/Desktop/SWEats/sweats
-    picture_path = os.path.join( app.root_path, 'static/profile_pics', picture_filename )
+    picture_path = os.path.join( app.root_path, folder, picture_filename )
     
     # Resizing the profile picture
-    output_size = (125, 125)
+    output_size = (size, size)
     im = Image.open(form_picture)
     im.thumbnail(output_size)
     im.save(picture_path)
@@ -114,7 +118,7 @@ def account():
             if current_user.image_file != 'default.png':
                 delete_old_picture(current_user.image_file)
 
-            picture_file = save_picture(form.picture.data)
+            picture_file = save_picture(form.picture.data, "static/profile_pics", 125)
             current_user.image_file = picture_file
         current_user.name = form.name.data
         current_user.email = form.email.data
@@ -131,3 +135,35 @@ def account():
         form.city.data = current_user.city
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
     return render_template('account.html', title='Account', image_file=image_file, form=form)
+
+@app.route('/admin/home')
+@login_required
+def admin():
+    return render_template('admin/home.html', title='Admin Home')
+
+@app.route('/admin/<model_name>')
+def model(model_name):
+    if model_name == "items":
+        model_instance = Item
+        title = "Items"
+        template_name = 'items.html'
+
+    # Quering all items from database
+    items = model_instance.query.all()
+
+    return render_template('admin/'+template_name, title=title, items=items)
+
+@app.route('/admin/item/new', methods=['GET', 'POST'])
+@login_required
+def new_item():
+    form = ItemForm()
+    if form.validate_on_submit():
+        picture_file = save_picture(form.picture.data, "static/product_pics", 675)
+        item = Item(category=form.category.data, description=form.description.data, unit_price=form.unit_price.data, image_file=picture_file)
+        
+        # Insert to database
+        db.session.add(item)
+        db.session.commit()
+        flash('Item added to the database!', 'success')
+        return redirect(url_for('new_item'))
+    return render_template('admin/new_item.html', title='New Item', form=form)

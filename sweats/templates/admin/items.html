@@ -1,0 +1,32 @@
+{% extends "admin/home.html" %}
+
+{% block nav %}
+    <a class="nav-item nav-link" href="{{ url_for('new_item') }}">New Item</a>
+{% endblock nav %}
+
+{% block content %}
+
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Category</th>
+            <th scope="col">Description</th>
+            <th scope="col">Image File</th>
+            <th scope="col">Unit Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
+            <tr class="table-row" data-href="#">
+                <th scope="row">{{ item.id }}</th>
+                <td>{{ item.category }}</td>
+                <td>{{ item.description }}</td>
+                <td>{{ item.image_file }}</td>
+                <td>{{ item.unit_price }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    
+{% endblock content %}

@@ -4,12 +4,12 @@
     {% for item in items %}
         <article class="media content-section">
             <div class="media-body">
-            <div class="article-metadata">
-                <a class="mr-2" href="#">{{ item.image_file }}</a>
-                <small class="text-muted">{{ item.category }}</small>
-            </div>
-            <h2><a class="article-title" href="#">Unit price - {{ item.unit_price }}</a></h2>
-            <p class="article-content">{{ item.description }}</p>
+                <div class="article-metadata">
+                    <a class="mr-2" href="#">{{ item.image_file }}</a>
+                    <small class="text-muted">{{ item.category }}</small>
+                </div>
+                <h2><a class="article-title" href="#">Unit price - {{ item.unit_price }}</a></h2>
+                <p class="article-content">{{ item.description }}</p>
             </div>
         </article>
     {% endfor %}

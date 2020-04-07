@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, IntegerField, TextAreaField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange
 from sweats.models import Customer
 
 class RegistrationForm(FlaskForm):
@@ -36,3 +36,10 @@ class UpdateAccountForm(FlaskForm):
             customer = Customer.query.filter_by(email=email.data).first()
             if customer:
                 raise ValidationError('This email is taken. Please choose another.')
+
+class ItemForm(FlaskForm):
+    category = StringField('Category', validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[DataRequired()])
+    picture = FileField('Product Image', validators=[DataRequired(), FileAllowed(['jpg','png'])])
+    unit_price = IntegerField('Unit Price', validators=[DataRequired(), NumberRange(min=100, max=10000)])
+    submit = SubmitField('Insert Item')

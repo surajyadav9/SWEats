@@ -77,4 +77,15 @@ body {
   
   .account-heading {
     font-size: 2.5rem;
-}
+  }
+
+  .table-row{
+      cursor: pointer;
+      color: #444444;
+  }
+
+  .table-row:hover{
+    color: #428bca;
+  }
+
+  .table tr:nth-child(even){background-color: #f2f2f2;}
