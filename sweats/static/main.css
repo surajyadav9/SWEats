@@ -89,3 +89,16 @@ body {
   }
 
   .table tr:nth-child(even){background-color: #f2f2f2;}
+
+  .delete-button{
+    background-color: Transparent;
+    background-repeat:no-repeat;
+    border: none;
+    cursor:pointer;
+    overflow: hidden;
+    outline:none;
+  }
+
+  .fa-trash-alt{
+    color:red;
+  }

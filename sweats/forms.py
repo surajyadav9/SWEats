@@ -43,3 +43,10 @@ class ItemForm(FlaskForm):
     picture = FileField('Product Image', validators=[DataRequired(), FileAllowed(['jpg','png'])])
     unit_price = IntegerField('Unit Price', validators=[DataRequired(), NumberRange(min=100, max=10000)])
     submit = SubmitField('Insert Item')
+
+class UpdateItemForm(FlaskForm):
+    category = StringField('Category', validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[DataRequired()])
+    picture = FileField('Product Image', validators=[FileAllowed(['jpg','png'])])
+    unit_price = IntegerField('Unit Price', validators=[DataRequired(), NumberRange(min=100, max=10000)])
+    submit = SubmitField('Update Item')

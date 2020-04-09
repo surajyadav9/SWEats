@@ -4,7 +4,7 @@ from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
 from flask_login import login_user, current_user, logout_user, login_required
 from sweats import app, db, bcrypt
-from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm
+from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm, UpdateItemForm
 from sweats.models import Customer, Item, Warehouse
 
 def isAdminUser(current_user):
@@ -102,8 +102,8 @@ def save_picture(form_picture, folder, size):
 
     return picture_filename
 
-def delete_old_picture(picture_filename):
-    picture_path = os.path.join( app.root_path, 'static/profile_pics', picture_filename )
+def delete_old_picture(picture_filename, folder):
+    picture_path = os.path.join( app.root_path, 'static/'+folder, picture_filename )
     os.remove(picture_path)
 
 
@@ -113,10 +113,9 @@ def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
-            
             # Delete old pictures
             if current_user.image_file != 'default.png':
-                delete_old_picture(current_user.image_file)
+                delete_old_picture(current_user.image_file, 'profile_pics')
 
             picture_file = save_picture(form.picture.data, "static/profile_pics", 125)
             current_user.image_file = picture_file
@@ -136,13 +135,20 @@ def account():
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
     return render_template('account.html', title='Account', image_file=image_file, form=form)
 
+'''
+ADMIN FUNCTIONALITY
+'''
+
+
 @app.route('/admin/home')
 @login_required
 def admin():
     return render_template('admin/home.html', title='Admin Home')
 
 @app.route('/admin/<model_name>')
+@login_required
 def model(model_name):
+    model_instance = ''
     if model_name == "items":
         model_instance = Item
         title = "Items"
@@ -172,3 +178,44 @@ def new_model(model_name):
         flash(f'{model_name.capitalize()} added to the database!', 'success')
         return redirect(url_for('new_model', model_name=model_name))
     return render_template('admin/'+template_name, title=title, form=form)
+
+@app.route('/admin/item/<int:item_id>/update', methods=['GET', 'POST'])
+@login_required
+def update_item(item_id):
+    form = UpdateItemForm()
+    item = Item.query.get_or_404(item_id)
+    if form.validate_on_submit():
+        if form.picture.data:
+            # Delete old picture
+            delete_old_picture(item.image_file, 'product_pics')
+            picture_file = save_picture(form.picture.data, "static/product_pics", 675)
+            
+            # Assigining new values
+            item.image_file = picture_file
+        
+        item.category = form.category.data
+        item.description = form.description.data
+        item.unit_price = form.unit_price.data
+
+        # Commit changes
+        db.session.commit()
+        flash('Item updated successfully!', 'success')
+        return redirect(url_for('update_item', item_id = item.id))
+    elif request.method == 'GET':
+        form.category.data = item.category
+        form.description.data = item.description
+        form.unit_price.data = item.unit_price
+    image_file = url_for('static', filename='product_pics/' + item.image_file)
+    return render_template('admin/update_item.html', title='Update Item', image_file=image_file, form=form)
+
+@app.route('/admin/item/<int:item_id>/delete', methods=['POST'])
+@login_required
+def delete_item(item_id):
+    item = Item.query.get_or_404(item_id)
+    delete_old_picture(item.image_file, 'product_pics')
+    # Delete Item
+    db.session.delete(item)
+    db.session.commit()
+    flash('Item have been successfully deleted from database!', 'success')
+    return redirect(url_for('model', model_name='items'))
+    

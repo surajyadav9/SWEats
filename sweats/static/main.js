@@ -1,5 +1,8 @@
-$(document).ready(function($) {
-    $(".table-row").click(function() {
-        window.document.location = $(this).data("href");
+
+// Delete item confirmation pop-up
+$(document).ready(function(){
+    $(".delete-item-form").submit(function(event) {
+        if( !confirm('Are you sure that you want to delete item?') ) 
+            event.preventDefault();
     });
 });
