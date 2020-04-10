@@ -7,31 +7,11 @@ from sweats import app, db, bcrypt
 from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm, UpdateItemForm
 from sweats.models import Customer, Item, Warehouse
 
-items_list = [
-    {
-        'category':'Cloths',
-        'description':'Wool cloths for children.',
-        'unit_price':1500,
-        'image_file':'default.jpg'
-    },
-    {
-        'category':'Mobile',
-        'description':'Smartphones with blah blah specifications.',
-        'unit_price':9999,
-        'image_file':'default.jpg'
-    },
-    {
-        'category':'Watch',
-        'description':'Water proof watches.',
-        'unit_price':2600,
-        'image_file':'default.jpg'
-    },
-]
-
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', items=items_list)
+    items = Item.query.all()
+    return render_template('home.html', items=items)
 
 @app.route('/about')
 def about():
@@ -79,7 +59,7 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-def save_picture(form_picture, folder, size):
+def save_picture(form_picture, folder, size_x, size_y):
 
     # Giving each picture to its own unique id
     random_hex = secrets.token_hex(8)
@@ -90,7 +70,7 @@ def save_picture(form_picture, folder, size):
     picture_path = os.path.join( app.root_path, folder, picture_filename )
     
     # Resizing the profile picture
-    output_size = (size, size)
+    output_size = (size_x, size_y)
     im = Image.open(form_picture)
     im.thumbnail(output_size)
     im.save(picture_path)
@@ -112,7 +92,7 @@ def account():
             if current_user.image_file != 'default.png':
                 delete_old_picture(current_user.image_file, 'profile_pics')
 
-            picture_file = save_picture(form.picture.data, "static/profile_pics", 125)
+            picture_file = save_picture(form.picture.data, "static/profile_pics", 125, 125)
             current_user.image_file = picture_file
         current_user.name = form.name.data
         current_user.email = form.email.data

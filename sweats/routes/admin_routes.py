@@ -38,7 +38,7 @@ def new_model(model_name):
 
     if form.validate_on_submit():
         if model_name == 'item':
-            picture_file = save_picture(form.picture.data, "static/product_pics", 675)
+            picture_file = save_picture(form.picture.data, "static/product_pics", 286, 180)
             item = Item(category=form.category.data, description=form.description.data, unit_price=form.unit_price.data, image_file=picture_file)
             
         # Insert to database
@@ -57,7 +57,7 @@ def update_item(item_id):
         if form.picture.data:
             # Delete old picture
             delete_old_picture(item.image_file, 'product_pics')
-            picture_file = save_picture(form.picture.data, "static/product_pics", 675)
+            picture_file = save_picture(form.picture.data, "static/product_pics", 286, 180)
             
             # Assigining new values
             item.image_file = picture_file
