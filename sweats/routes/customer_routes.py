@@ -5,7 +5,7 @@ from flask import render_template, url_for, flash, redirect, request
 from flask_login import login_user, current_user, logout_user, login_required
 from sweats import app, db, bcrypt
 from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm, UpdateItemForm
-from sweats.models import Customer, Item, Warehouse
+from sweats.models import Customer, Item, Warehouse, Order
 
 @app.route("/")
 @app.route("/home")
@@ -111,4 +111,8 @@ def account():
     return render_template('account.html', title='Account', image_file=image_file, form=form)
 
 
-    
+@app.route('/item/<int:item_id>/order', methods=['POST'])
+@login_required
+def place_order(item_id):
+    flash('Your order processed successfully!', 'success')
+    return redirect(url_for('home'))

@@ -6,15 +6,13 @@
     <div class="card" style="width: 20em;">
         <img class="card-img-top" src="{{ url_for('static', filename='product_pics/'+item.image_file) }}" alt="Card image cap">
         <div class="card-body">
-          <h5 class="card-title">{{ item.category }}</h5>
-          <p class="card-text">{{ item.description }}</p>
-          <p class="card-text">Unit price ${{ item.unit_price }}</p>
-          <div class="item-card-buttons">
-            <a href="#" class="btn btn-primary">Buy</a>
-            <a href="#" class="btn btn-primary">Add to Cart</a>
-          </div>
+            <h5 class="card-title">{{ item.category }}</h5>
+            <p class="card-text">{{ item.description }}</p>
+            <p class="card-text">Unit price ${{ item.unit_price }}</p>
+            <form action="{{ url_for('place_order', item_id=item.id) }}" method="POST"><button type="submit" class="btn btn-primary">Buy</button></form>
+            <form action=""><button type="submit" class="btn btn-primary">Add to Cart</button></form>
         </div>
-      </div>
+    </div>
     {% endfor %}
 </div>
 {% endblock content %}
