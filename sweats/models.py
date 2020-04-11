@@ -19,10 +19,11 @@ class Customer(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default='default.png')
     city = db.Column(db.String(20), nullable=False)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
     orders = db.relationship('Order' , backref='owner' , lazy=True)
 
     def __repr__(self):
-        return f"Customer('{self.id}', '{self.name}',  '{self.email}', '{self.image_file}', '{self.city}')"
+        return f"Customer('{self.id}', '{self.name}', '{self.admin}',  '{self.email}', '{self.image_file}', '{self.city}')"
 
 class Order(db.Model):
     __tablename__ = 'orders'

@@ -5,7 +5,7 @@ from flask import render_template, url_for, flash, redirect, request
 from flask_login import login_user, current_user, logout_user, login_required
 from sweats import app, db, bcrypt
 from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm, UpdateItemForm
-from sweats.models import Customer, Item, Warehouse, Order
+from sweats.models import Customer, Item, Warehouse, Order, Cart, Shipment
 
 @app.route("/")
 @app.route("/home")

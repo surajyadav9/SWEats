@@ -50,3 +50,6 @@ class UpdateItemForm(FlaskForm):
     picture = FileField('Product Image', validators=[FileAllowed(['jpg','png'])])
     unit_price = IntegerField('Unit Price', validators=[DataRequired(), NumberRange(min=100, max=10000)])
     submit = SubmitField('Update Item')
+
+class WarehouseForm(FlaskForm):
+    city = StringField('City', validators=[DataRequired()])

@@ -1,8 +1,8 @@
 import os
 import secrets
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request
-from flask_login import logout_user, login_required
+from flask import render_template, url_for, flash, redirect, request, abort
+from flask_login import logout_user, current_user, login_required
 from sweats import app, db, bcrypt
 from sweats.forms import ItemForm, UpdateItemForm
 from sweats.models import Item, Warehouse
@@ -12,11 +12,15 @@ from sweats.routes.customer_routes import save_picture, delete_old_picture
 @app.route('/admin/home')
 @login_required
 def admin():
+    if not current_user.admin:
+        abort(403)
     return render_template('admin/home.html', title='Admin Home')
 
 @app.route('/admin/<model_name>')
 @login_required
 def model(model_name):
+    if not current_user.admin:
+        abort(403)
     model_instance = ''
     if model_name == "items":
         model_instance = Item
@@ -31,6 +35,8 @@ def model(model_name):
 @app.route('/admin/<model_name>/new', methods=['GET', 'POST'])
 @login_required
 def new_model(model_name):
+    if not current_user.admin:
+        abort(403)
     if model_name == 'item':
         form  = ItemForm()
         template_name = 'new_item.html'
@@ -51,6 +57,8 @@ def new_model(model_name):
 @app.route('/admin/item/<int:item_id>/update', methods=['GET', 'POST'])
 @login_required
 def update_item(item_id):
+    if not current_user.admin:
+        abort(403)
     form = UpdateItemForm()
     item = Item.query.get_or_404(item_id)
     if form.validate_on_submit():
@@ -80,6 +88,8 @@ def update_item(item_id):
 @app.route('/admin/item/<int:item_id>/delete', methods=['POST'])
 @login_required
 def delete_item(item_id):
+    if not current_user.admin:
+        abort(403)
     item = Item.query.get_or_404(item_id)
     delete_old_picture(item.image_file, 'product_pics')
     # Delete Item
