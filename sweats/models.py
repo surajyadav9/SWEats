@@ -30,23 +30,23 @@ class Order(db.Model):
     id = db.Column(db.Integer , primary_key=True)
     order_date = db.Column(db.DateTime , default=datetime.utcnow)
 
-    # sum of all amount of each individual Cart item
+    # sum of all amount of each individual OrderItem
     total_amount = db.Column(db.Integer , nullable=False)
     customer_id = db.Column(db.Integer , db.ForeignKey('customers.id') , nullable=False)
-    cart_items = db.relationship('Cart' , backref='order' , lazy=True)
-    shipments = db.relationship('Shipment' , backref='order' , lazy=True)
+    order_items = db.relationship('OrderItem' , backref='order' , lazy=True)
+    shipment = db.relationship('Shipment' , backref='order' , lazy=True)
 
     def __repr__(self):
         return f"Order('{self.id}', '{self.order_date}', '{self.total_amount}' , '{self.customer_id}')"
 
-class Cart(db.Model):
-    __tablename__ = 'cartitems'
-    order_id = db.Column(db.Integer , db.ForeignKey('orders.id') , primary_key=True)
+class OrderItem(db.Model):
+    __tablename__ = 'orderitems'
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), primary_key=True)
     item_id = db.Column(db.Integer , db.ForeignKey('items.id') , primary_key=True)
     quantity = db.Column(db.Integer , nullable=False)
 
     def __repr__(self):
-        return f"Cart-Item('{self.order_id}', '{self.item_id}', '{self.quantity}')"
+        return f"Order-Item('{self.order_id}', '{self.item_id}', '{self.quantity}')"
 
 class Item(db.Model):
     __tablename__ = 'items'
@@ -57,7 +57,7 @@ class Item(db.Model):
     unit_price = db.Column(db.Integer , nullable=False)
 
     # Item-OrderItem : One-Many
-    cart_items = db.relationship('Cart' , backref='item' , lazy=True)
+    order_items = db.relationship('OrderItem' , backref='item' , lazy=True)
 
     def __repr__(self):
         return f"Item('{self.id}', '{self.category}', '{self.description}', '{self.image_file}', '{self.unit_price}')"
