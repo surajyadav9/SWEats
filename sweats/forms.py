@@ -3,7 +3,7 @@ from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, IntegerField, TextAreaField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange
-from sweats.models import Customer
+from sweats.models import Customer, Warehouse
 
 class RegistrationForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired(), Length(min=2, max=20)])
@@ -53,8 +53,14 @@ class UpdateItemForm(FlaskForm, ItemMixin):
 class WarehouseMixin():
     city = StringField('City', validators=[DataRequired()])
 
+    def validate_city(self, city):
+        warehouse = Warehouse.query.filter_by(city=city.data).first()
+        if warehouse:
+            raise ValidationError('This warehouse is already added. Please choose another.')
+
 class WarehouseForm(FlaskForm, WarehouseMixin):
     submit = SubmitField('Add Warehouse')
+
 
 class UpdateWarehouseForm(FlaskForm, WarehouseMixin):
     submit = SubmitField('Update Warehouse')

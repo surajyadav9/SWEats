@@ -77,7 +77,7 @@ class Shipment(db.Model):
 class Warehouse(db.Model):
     __tablename__ = 'warehouses'
     id = db.Column(db.Integer, primary_key=True)
-    city = db.Column(db.String(50), nullable=False)
+    city = db.Column(db.String(50), unique=True, nullable=False)
 
     # Warehouse-Shipment : One-Many
     shipments = db.relationship('Shipment' , backref='warehouse' , lazy=True)
