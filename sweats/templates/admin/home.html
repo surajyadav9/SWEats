@@ -29,7 +29,8 @@
               <div class="navbar-nav">
                 {% if current_user.is_authenticated %}
                   {% block nav %}{% endblock %}
-                  <a class="nav-item nav-link" href="{{ url_for('model', model_name='items') }}">Items</a>
+                  <a class="nav-item nav-link" href="{{ url_for('model', model_name='item') }}">Items</a>
+                  <a class="nav-item nav-link" href="{{ url_for('model', model_name='warehouse') }}">Warehouses</a>
                   <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>
                 {% else %}
                   <a class="nav-item nav-link" href="{{ url_for('login') }}">Login</a>

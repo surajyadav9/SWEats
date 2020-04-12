@@ -1,0 +1,30 @@
+{% extends "admin/home.html" %}
+
+{% block nav %}
+    <a class="nav-item nav-link" href="{{ url_for('new_model', model_name='warehouse') }}">Add Warehouse</a>
+{% endblock nav %}
+
+{% block content %}
+
+
+<table class="table table-bordered">
+    <thead class="thead-dark">
+    <tr>
+        <th scope="col">Update</th>
+        <th scope="col">Delete</th>
+        <th scope="col">ID</th>
+        <th scope="col">City</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in items %}
+        <tr class="table-row" data-href="#">
+            <td><a href="{{ url_for('update_warehouse', warehouse_id=item.id) }}"><i class="far fa-edit"></i></a></td>
+            <td><form class="delete-item-form" action="{{ url_for('delete_model_instance', model_name='warehouse', instance_id=item.id) }}" method="POST"><button type="submit" class="delete-button"><i class="far fa-trash-alt"></i></button></form></td>
+            <th scope="row">{{ item.id }}</th>
+            <td>{{ item.city }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock content %}

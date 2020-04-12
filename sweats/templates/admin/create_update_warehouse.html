@@ -1,0 +1,30 @@
+{% extends "admin/home.html" %}
+
+{% block content %}
+    <div class='content-section'>
+        <!-- action=none, i.e, it will post to the current route i.e /admin/item/new -->
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">{{ legend }}</legend>
+                <div class="form-group">
+                    {{ form.city.label(class="form-control-label") }}
+
+                    {% if form.city.errors %}
+                        {{ form.city(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.city.errors %}
+                                <span> {{ error }} </span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.city(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+            </fieldset>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+    </div>
+{% endblock content %}

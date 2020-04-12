@@ -1,70 +1,7 @@
-{% extends "admin/home.html" %}
+{% extends "admin/new_item.html" %}
 
-{% block content %}
-    <div class='content-section'>
-        <div class="media">
-            <img class="account-img" src="{{ image_file }}">
-        </div>
-        <!-- action=none, i.e, it will post to the current route i.e /admin/item/new -->
-        <form method="POST" action="" enctype="multipart/form-data">
-            {{ form.hidden_tag() }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Update Item In Database</legend>
-                <div class="form-group">
-                    {{ form.category.label(class="form-control-label") }}
-
-                    {% if form.category.errors %}
-                        {{ form.category(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.category.errors %}
-                                <span> {{ error }} </span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.category(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.description.label(class="form-control-label") }}
-
-                    {% if form.description.errors %}
-                        {{ form.description(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.description.errors %}
-                                <span> {{ error }} </span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.description(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.unit_price.label(class="form-control-label") }}
-
-                    {% if form.unit_price.errors %}
-                        {{ form.unit_price(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.unit_price.errors %}
-                                <span> {{ error }} </span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.unit_price(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.picture.label() }}
-                    {{ form.picture(class="form-control-file") }}
-                    {% if form.picture.errors %}
-                        {% for error in form.picture.errors %}
-                            <span class="text-danger">{{ error }}</span></br>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-            </fieldset>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
-            </div>
-        </form>
+{% block image %}
+    <div class="media">
+        <img class="account-img" src="{{ image_file }}">
     </div>
-{% endblock content %}
+{% endblock image %}

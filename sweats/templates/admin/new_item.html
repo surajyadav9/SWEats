@@ -2,6 +2,7 @@
 
 {% block content %}
     <div class='content-section'>
+        {% block image %} {% endblock %}
         <!-- action=none, i.e, it will post to the current route i.e /admin/item/new -->
         <form method="POST" action="" enctype="multipart/form-data">
             {{ form.hidden_tag() }}
