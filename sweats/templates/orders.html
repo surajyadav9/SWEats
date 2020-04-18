@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    
+    {% for order in orders %}
+        <div class="content-section">
+            <h5>Order ID {{order.id}} | Total Amount ${{ order.total_amount }}</h4>
+            <p>Order date {{ order.order_date.strftime('%Y-%m-%d') }} | Ship date {{ order.shipment[0].ship_date.strftime('%Y-%m-%d') }}</p>
+            <hr>
+            <ul class="list-unstyled">
+                {% for item, quantity in orderItems[order] %}
+                <li class="media">
+                <img class="mr-3" src="{{ url_for('static', filename='product_pics/'+item.image_file) }}">
+                <div class="media-body">
+                    <h5 class="mt-0 mb-1">Item ID {{ item.id }}</h5>
+                    <p>{{ quantity }} pieces</p>
+                    <p>${{ item.unit_price }} per pieces</p>
+                </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+
+{% endblock content %}

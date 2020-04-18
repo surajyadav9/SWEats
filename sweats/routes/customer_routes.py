@@ -1,17 +1,18 @@
 import os
 import secrets
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request
+from flask import render_template, url_for, flash, redirect, request, abort
 from flask_login import login_user, current_user, logout_user, login_required
 from sweats import app, db, bcrypt
-from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm, UpdateItemForm
+from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm, UpdateItemForm, orderItemForm
 from sweats.models import Customer, Item, Warehouse, Order, OrderItem, Shipment
 
 @app.route("/")
 @app.route("/home")
 def home():
     items = Item.query.all()
-    return render_template('home.html', items=items)
+    form = orderItemForm()
+    return render_template('home.html', items=items, form=form)
 
 @app.route('/about')
 def about():
@@ -114,5 +115,47 @@ def account():
 @app.route('/item/<int:item_id>/order', methods=['POST'])
 @login_required
 def place_order(item_id):
-    flash('Your order processed successfully!', 'success')
-    return redirect(url_for('home'))
+    form = orderItemForm()
+    if form.validate_on_submit():
+        unit_price = Item.query.get_or_404(item_id).unit_price
+        order_amount = unit_price * form.quantity.data
+        # Adding Order to database
+        order = Order(total_amount=order_amount, customer_id=current_user.id)
+        db.session.add(order)
+        db.session.commit()
+        # Adding OrderItem to DB
+        order_item = OrderItem(order_id=order.id, item_id=item_id, quantity=form.quantity.data, order=order)
+        db.session.add(order_item)
+        db.session.commit()
+        # Adding Shipment to DB
+        warehouse = Warehouse.query.filter_by(city=current_user.city).first()
+        if not warehouse:
+            flash('Your city is not reachable to us! Sorry for inconvenience.', 'info')
+            return redirect(url_for('home'))
+        shipment = Shipment(order_id=order.id, warehouse_id=warehouse.id, warehouse=warehouse, order=order)
+        db.session.add(shipment)
+        db.session.commit()
+
+        flash('Your order processed successfully!', 'success')
+        return redirect(url_for('home'))
+    items = Item.query.all()
+    return render_template('home.html', items=items, form=form)
+
+@app.route("/orders")
+@login_required
+def orders():
+    orderList = Order.query.filter_by(customer_id=current_user.id)
+    orderItems = {}
+    for order in orderList:
+        items = []
+        for orderItem in order.order_items:
+            item = Item.query.get_or_404(orderItem.item_id)
+            pair = (item, orderItem.quantity)
+            items.append(pair)
+        orderItems[order] = items
+    
+
+    return render_template('orders.html', title="Orders", orders=orderList, orderItems=orderItems)
+
+
+

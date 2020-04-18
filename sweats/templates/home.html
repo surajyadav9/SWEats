@@ -9,8 +9,26 @@
             <h5 class="card-title">{{ item.category }}</h5>
             <p class="card-text">{{ item.description }}</p>
             <p class="card-text">Unit price ${{ item.unit_price }}</p>
-            <form action="{{ url_for('place_order', item_id=item.id) }}" method="POST"><button type="submit" class="btn btn-primary">Buy</button></form>
-            <form action=""><button type="submit" class="btn btn-primary">Add to Cart</button></form>
+            <form method='POST' action="{{ url_for('place_order', item_id=item.id) }}">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="form-group">
+                        {{ form.quantity.label(class="form-control-label") }}
+    
+                        {% if form.quantity.errors %}
+                            {{ form.quantity(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.quantity.errors %}
+                                    <span> {{ error }} </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.quantity(class="form-control") }}
+                        {% endif %}
+                        {{ form.submit(class="btn btn-outline-info") }}
+                    </div>
+                </fieldset>
+            </form>
         </div>
     </div>
     {% endfor %}

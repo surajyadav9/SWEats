@@ -64,3 +64,7 @@ class WarehouseForm(FlaskForm, WarehouseMixin):
 
 class UpdateWarehouseForm(FlaskForm, WarehouseMixin):
     submit = SubmitField('Update Warehouse')
+
+class orderItemForm(FlaskForm):
+    quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1, max=4)])
+    submit = SubmitField('Buy')
