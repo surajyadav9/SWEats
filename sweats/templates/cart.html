@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block buycartnav %}
+    <form action="{{ url_for('buy_cart') }}" method="POST"><a onclick="this.closest('form').submit();return false;" class="nav-item nav-link" href="#">Buy</a></form>
+{% endblock buycartnav %}
+
+{% block content %}
+    {% for item in items %}
+        <article class="media content-section">
+          <img class="article-img" src="{{ url_for('static', filename='product_pics/' + item.image_file) }}">
+          <div class="media-body">
+            <div class="article-metadata">
+              <p class="mr-2">Item ID - {{ item.id }}</p>
+              <small class="text-muted">Quantity - {{ items[item] }}</small>
+              <small class="text-muted">Total - ${{ item.unit_price * items[item] }}</small>
+              <div>
+                <form class="delete-item-form" action="{{ url_for('delete_cart_item', item_id=item.id) }}" method="POST"><button type="submit" class="btn btn-danger btn-sm m-1">Delete</button></form>
+              </div>
+            </div>
+            <h2>{{ item.category }}</h2>
+            <p class="article-content">{{ item.description }}</p>
+          </div>
+        </article>
+    {% endfor %}
+{% endblock content %}

@@ -1,25 +1,29 @@
 {% extends "layout.html" %}
-
 {% block content %}
-    
     {% for order in orders %}
-        <div class="content-section">
-            <h5>Order ID {{order.id}} | Total Amount ${{ order.total_amount }}</h4>
-            <p>Order date {{ order.order_date.strftime('%Y-%m-%d') }} | Ship date {{ order.shipment[0].ship_date.strftime('%Y-%m-%d') }}</p>
-            <hr>
-            <ul class="list-unstyled">
-                {% for item, quantity in orderItems[order] %}
-                <li class="media">
-                <img class="mr-3" src="{{ url_for('static', filename='product_pics/'+item.image_file) }}">
-                <div class="media-body">
-                    <h5 class="mt-0 mb-1">Item ID {{ item.id }}</h5>
-                    <p>{{ quantity }} pieces</p>
-                    <p>${{ item.unit_price }} per pieces</p>
-                </div>
-                </li>
-                {% endfor %}
-            </ul>
+    <div class="content-section">
+        <div class="media-body">
+            <div class="article-metadata">
+                <h4 class="mr-2">Order ID - {{ order.id }}</h4>
+                <h6 class="mr-2">Total amount - ${{ order.total_amount }}</h6>
+                <small class="text-muted">Order date - {{ order.order_date.strftime('%Y-%m-%d') }}</small>
+                <small class="text-muted">Ship date - {{ order.shipment[0].ship_date.strftime('%Y-%m-%d') }}</small>
+            </div>
         </div>
+        {% for item, quantity in orderItems[order] %}
+        <article class="media content-section">
+            <img class="article-img" src="{{ url_for('static', filename='product_pics/' + item.image_file) }}">
+            <div class="media-body">
+              <div class="article-metadata">
+                <p class="mr-2">Item ID - {{ item.id }}</p>
+                <small class="text-muted">Quantity - {{ quantity }}</small>
+                <small class="text-muted">Total - ${{ item.unit_price * quantity }}</small>
+              </div>
+              <h2>{{ item.category }}</h2>
+              <p class="article-content">{{ item.description }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
     {% endfor %}
-
 {% endblock content %}

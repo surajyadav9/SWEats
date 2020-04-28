@@ -10,23 +10,19 @@
             <p class="card-text">{{ item.description }}</p>
             <p class="card-text">Unit price ${{ item.unit_price }}</p>
             <form method='POST' action="{{ url_for('place_order', item_id=item.id) }}">
-                {{ form.hidden_tag() }}
+                {{ order_form.hidden_tag() }}
                 <fieldset class="form-group">
-                    <div class="form-group">
-                        {{ form.quantity.label(class="form-control-label") }}
-    
-                        {% if form.quantity.errors %}
-                            {{ form.quantity(class="form-control is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form.quantity.errors %}
-                                    <span> {{ error }} </span>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ form.quantity(class="form-control") }}
-                        {% endif %}
-                        {{ form.submit(class="btn btn-outline-info") }}
-                    </div>
+                    {{ order_form.quantity.label(class="form-control-label") }}
+                    {{ order_form.quantity(class="form-control") }}
+                    {{ order_form.submit(class="btn btn-outline-info") }}
+                </fieldset>
+            </form>
+            <form method='POST' action="{{ url_for('add_to_cart', item_id=item.id) }}">
+                {{ cart_form.hidden_tag() }}
+                <fieldset class="form-group">
+                    {{ cart_form.quantity.label(class="form-control-label") }}
+                    {{ cart_form.quantity(class="form-control") }}
+                    {{ cart_form.submit(class="btn btn-outline-info") }}
                 </fieldset>
             </form>
         </div>

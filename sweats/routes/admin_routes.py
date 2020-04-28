@@ -5,7 +5,7 @@ from flask import render_template, url_for, flash, redirect, request, abort
 from flask_login import logout_user, current_user, login_required
 from sweats import app, db, bcrypt
 from sweats.forms import ItemForm, UpdateItemForm, WarehouseForm, UpdateWarehouseForm
-from sweats.models import Item, Warehouse
+from sweats.models import Item, Warehouse,OrderItem
 from sweats.routes.customer_routes import save_picture, delete_old_picture
 
 
@@ -55,7 +55,7 @@ def new_model(model_name):
 
     if form.validate_on_submit():
         if model_name == 'item':
-            picture_file = save_picture(form.picture.data, "static/product_pics", 286, 180)
+            picture_file = save_picture(form.picture.data, "static/product_pics", 250, 320)
             item = Item(category=form.category.data, description=form.description.data, unit_price=form.unit_price.data, image_file=picture_file)
         elif model_name == 'warehouse':
             item = Warehouse(city=form.city.data)
@@ -122,9 +122,17 @@ def delete_model_instance(model_name, instance_id):
         abort(403)
     if model_name == 'item':
         item = Item.query.get_or_404(instance_id)
+        oi = OrderItem.query.filter_by(item_id=item.id).first()
+        if oi:
+            flash("This item has relations with past orders. So can't be deletd due to history issues!", 'danger')
+            return redirect(url_for('model', model_name='item'))
         delete_old_picture(item.image_file, 'product_pics')
     elif model_name == 'warehouse':
         item = Warehouse.query.get_or_404(instance_id)
+        if item.shipments:
+            flash("This warehouse has relations with past orders. So can't be deletd due to history issues!", 'danger')
+            return redirect(url_for('model', model_name='warehouse'))
+
     # Delete Item
     db.session.delete(item)
     db.session.commit()

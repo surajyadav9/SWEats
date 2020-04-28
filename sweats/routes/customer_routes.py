@@ -4,15 +4,16 @@ from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, abort
 from flask_login import login_user, current_user, logout_user, login_required
 from sweats import app, db, bcrypt
-from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm, UpdateItemForm, orderItemForm
-from sweats.models import Customer, Item, Warehouse, Order, OrderItem, Shipment
+from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm, UpdateItemForm, OrderItemForm, CartItemForm
+from sweats.models import Customer, Item, Warehouse, Order, OrderItem, Shipment, CartItem
 
 @app.route("/")
 @app.route("/home")
 def home():
     items = Item.query.all()
-    form = orderItemForm()
-    return render_template('home.html', items=items, form=form)
+    order_form = OrderItemForm()
+    cart_form = CartItemForm()
+    return render_template('home.html', items=items, order_form=order_form, cart_form=cart_form)
 
 @app.route('/about')
 def about():
@@ -61,7 +62,6 @@ def logout():
     return redirect(url_for('home'))
 
 def save_picture(form_picture, folder, size_x, size_y):
-
     # Giving each picture to its own unique id
     random_hex = secrets.token_hex(8)
     _ , f_ext = os.path.splitext( form_picture.filename )
@@ -115,31 +115,34 @@ def account():
 @app.route('/item/<int:item_id>/order', methods=['POST'])
 @login_required
 def place_order(item_id):
-    form = orderItemForm()
+    form = OrderItemForm()
     if form.validate_on_submit():
-        unit_price = Item.query.get_or_404(item_id).unit_price
-        order_amount = unit_price * form.quantity.data
-        # Adding Order to database
-        order = Order(total_amount=order_amount, customer_id=current_user.id)
-        db.session.add(order)
-        db.session.commit()
-        # Adding OrderItem to DB
-        order_item = OrderItem(order_id=order.id, item_id=item_id, quantity=form.quantity.data, order=order)
-        db.session.add(order_item)
-        db.session.commit()
-        # Adding Shipment to DB
         warehouse = Warehouse.query.filter_by(city=current_user.city).first()
         if not warehouse:
             flash('Your city is not reachable to us! Sorry for inconvenience.', 'info')
             return redirect(url_for('home'))
+
+        unit_price = Item.query.get_or_404(item_id).unit_price
+        order_amount = unit_price * form.quantity.data
+
+        # Adding Order to database
+        order = Order(total_amount=order_amount, customer_id=current_user.id, owner=current_user)
+        db.session.add(order)
+        db.session.commit()
+
+        # Adding OrderItem to DB
+        order_item = OrderItem(order_id=order.id, item_id=item_id, quantity=form.quantity.data, order=order)
+        db.session.add(order_item)
+        db.session.commit()
+
+        # Adding Shipment to DB
         shipment = Shipment(order_id=order.id, warehouse_id=warehouse.id, warehouse=warehouse, order=order)
         db.session.add(shipment)
         db.session.commit()
-
         flash('Your order processed successfully!', 'success')
-        return redirect(url_for('home'))
-    items = Item.query.all()
-    return render_template('home.html', items=items, form=form)
+    else:
+        flash("Maximum 4 quantity can be ordered at a time!", 'danger')
+    return redirect(url_for('home'))
 
 @app.route("/orders")
 @login_required
@@ -153,9 +156,82 @@ def orders():
             pair = (item, orderItem.quantity)
             items.append(pair)
         orderItems[order] = items
-    
-
     return render_template('orders.html', title="Orders", orders=orderList, orderItems=orderItems)
 
+@app.route('/item/<int:item_id>/cart', methods=['POST'])
+@login_required
+def add_to_cart(item_id):
+    form = CartItemForm()
+    if form.validate_on_submit():
+        # Check wether the item already exist in cart
+        cart_item = CartItem.query.filter_by(customer_id=current_user.id, item_id=item_id).first()
+        if cart_item:
+            flash("This item already exist in your cart!", 'info')
+        else:
+            cart_item = CartItem(customer_id=current_user.id, item_id=item_id, quantity=form.quantity.data)
+            db.session.add(cart_item)
+            db.session.commit()
+            flash("Item added to your cart!", 'success')
+    else:
+        flash("Maximum 4 quantity can be added to cart!", 'danger')
+    return redirect(url_for('home'))
 
+@app.route("/cart")
+@login_required
+def cart():
+    cartList = CartItem.query.filter_by(customer_id=current_user.id)
+    cartItems = {}
+    for cart in cartList:
+        item = Item.query.get_or_404(cart.item_id)
+        cartItems[item] = cart.quantity
+    return render_template('cart.html', items=cartItems)
 
+@app.route('/cart/<int:item_id>/delete', methods=['POST'])
+@login_required
+def delete_cart_item(item_id):
+    cart_item = CartItem.query.filter_by(customer_id=current_user.id, item_id=item_id).first()
+    if cart_item:
+        db.session.delete(cart_item)
+        db.session.commit()
+        flash("Successfully removed item from cart!", 'success')
+        return redirect(url_for('cart'))
+    else:
+        # Bad request
+        abort(400)
+
+@app.route('/cart/buy', methods=['POST'])
+@login_required
+def buy_cart():
+    cart = CartItem.query.filter_by(customer_id=current_user.id).first()
+    if not cart:
+        flash("Cart is empty!", 'info')
+        return redirect(url_for('home'))
+
+    warehouse = Warehouse.query.filter_by(city=current_user.city).first()
+    if not warehouse:
+        flash('Your city is not reachable to us! Sorry for inconvenience.', 'info')
+        return redirect(url_for('home'))
+
+    cart = CartItem.query.filter_by(customer_id=current_user.id)
+    total_amount=0
+    for cart_item in cart:
+        item = Item.query.get_or_404(cart_item.item_id)
+        total_amount += (item.unit_price * cart_item.quantity)
+
+    # Add order to DB
+    order = Order(customer_id=current_user.id, total_amount=total_amount)
+    db.session.add(order)
+    db.session.commit()
+
+    # Add Shipment to DB
+    shipment = Shipment(order_id=order.id, warehouse_id=warehouse.id, warehouse=warehouse, order=order)
+    db.session.add(shipment)
+    db.session.commit()
+
+    # Add OrderItems
+    for cart_item in cart:
+        order_item = OrderItem(order_id=order.id, item_id=cart_item.item_id, quantity=cart_item.quantity)
+        db.session.add(order_item)
+        db.session.delete(cart_item)
+    db.session.commit()
+    return redirect(url_for('orders'))

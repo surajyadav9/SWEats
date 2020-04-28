@@ -21,6 +21,7 @@ class Customer(db.Model, UserMixin):
     city = db.Column(db.String(20), nullable=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
     orders = db.relationship('Order' , backref='owner' , lazy=True)
+    cart_items = db.relationship('CartItem', backref='owner', lazy=True)
 
     def __repr__(self):
         return f"Customer('{self.id}', '{self.name}', '{self.admin}',  '{self.email}', '{self.image_file}', '{self.city}')"
@@ -84,3 +85,12 @@ class Warehouse(db.Model):
 
     def __repr__(self):
         return f"Warehouse('{self.id}', '{self.city}')"
+
+class CartItem(db.Model):
+    __tablename__= 'cartitems'
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False, primary_key=True)
+    quantity = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f"Cart('{self.customer_id}', '{self.item_id}', '{self.quantity}')"
