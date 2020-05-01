@@ -147,9 +147,13 @@ def place_order(item_id):
 @app.route("/orders")
 @login_required
 def orders():
-    orderList = Order.query.filter_by(customer_id=current_user.id)
+    # Paginating orders
+    # (argument_name, default-vlue, type)
+    page = request.args.get('page', 1, type=int)
+
+    orderList = Order.query.filter_by(customer_id=current_user.id).order_by(Order.order_date.desc()).paginate(page=page, per_page=1)
     orderItems = {}
-    for order in orderList:
+    for order in orderList.items:
         items = []
         for orderItem in order.order_items:
             item = Item.query.get_or_404(orderItem.item_id)
@@ -179,7 +183,7 @@ def add_to_cart(item_id):
 @app.route("/cart")
 @login_required
 def cart():
-    cartList = CartItem.query.filter_by(customer_id=current_user.id)
+    cartList = CartItem.query.filter_by(customer_id=current_user.id).order_by()
     cartItems = {}
     for cart in cartList:
         item = Item.query.get_or_404(cart.item_id)
