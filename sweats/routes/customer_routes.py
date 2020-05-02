@@ -3,9 +3,12 @@ import secrets
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, abort
 from flask_login import login_user, current_user, logout_user, login_required
-from sweats import app, db, bcrypt
-from sweats.forms import RegistrationForm, LoginForm, UpdateAccountForm, ItemForm, UpdateItemForm, OrderItemForm, CartItemForm
+from sweats import app, db, bcrypt, mail
+from sweats.forms import (RegistrationForm, LoginForm, UpdateAccountForm, ItemForm,
+                         UpdateItemForm, OrderItemForm, CartItemForm, RequestRestForm, ResetPasswordForm)
 from sweats.models import Customer, Item, Warehouse, Order, OrderItem, Shipment, CartItem
+from flask_mail import Message
+
 
 @app.route("/")
 @app.route("/home")
@@ -239,3 +242,52 @@ def buy_cart():
         db.session.delete(cart_item)
     db.session.commit()
     return redirect(url_for('orders'))
+
+#
+# Password Reset Section
+#
+
+def send_request_email(user):
+    token = user.get_reset_token()
+    msg = Message('Password Reset Request', sender="noreply@demo.com",
+                     recipients=[user.email])
+    # _external = True is used to give the full URL instead of relative to the user in mail
+    msg.body = f'''To reset your password, visit the following link -
+{url_for('reset_token', token=token, _external=True)}
+
+If you did not make this request then simply ignore this email. Hence no changes will be made.
+'''
+    mail.send(msg)
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
+    form = RequestRestForm()
+    if form.validate_on_submit():
+        customer = Customer.query.filter_by(email=form.email.data).first()
+        send_request_email(customer)
+        flash(f'An email has been sent with instructions to reset your password.', 'info')
+        return redirect(url_for('login'))
+    return render_template('reset_request.html', title='Reset Password', form=form)
+
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
+    customer = Customer.verify_reset_token(token)
+    if customer is None:
+        flash("That is an invalid or expired token.", 'warning')
+        return redirect(url_for('reset_request'))
+    
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        pw_hash = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        customer.password = pw_hash
+        db.session.commit()
+        flash('Your password has been updated. Now you can log in.', 'success')
+        return redirect(url_for('login'))
+    return render_template('reset_token.html', title='Reset Password', form=form)

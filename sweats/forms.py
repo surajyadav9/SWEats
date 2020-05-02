@@ -71,3 +71,19 @@ class OrderItemForm(FlaskForm):
 class CartItemForm(FlaskForm):
     quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1, max=4)])
     submit = SubmitField('Add to Cart')
+
+
+class RequestRestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Requst Password Reset')
+
+    def validate_email(self, email):
+        customer = Customer.query.filter_by(email=email.data).first()
+        if customer is None:
+            raise ValidationError('There is no account with that email. You must register first.')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password',
+                                     validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')

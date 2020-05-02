@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-from sweats import db, login_manager
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from sweats import db, login_manager, app
 from flask_login import UserMixin
 
 
@@ -22,6 +23,24 @@ class Customer(db.Model, UserMixin):
     admin = db.Column(db.Boolean, nullable=False, default=False)
     orders = db.relationship('Order' , backref='owner' , lazy=True)
     cart_items = db.relationship('CartItem', backref='owner', lazy=True)
+
+    # Token to get password reset
+    def get_reset_token(self, expires_sec=1800):
+        s = Serializer(app.config['SECRET_KEY'], expires_sec)
+        # Returns a token with given payload
+        return s.dumps({'customer_id': self.id}).decode('utf-8')
+
+    # Verify the token, token is ok, expires or valid?
+    @staticmethod
+    def verify_reset_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            # If the token is expires of invalid, then we get an error when accessing 'customer_id'
+            # Return a dictionary
+            customer_id = s.loads(token)['customer_id']
+        except:
+            return None
+        return Customer.query.get(customer_id)
 
     def __repr__(self):
         return f"Customer('{self.id}', '{self.name}', '{self.admin}',  '{self.email}', '{self.image_file}', '{self.city}')"
