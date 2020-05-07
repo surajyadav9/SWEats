@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block buycartnav %}
-    <form action="{{ url_for('buy_cart') }}" method="POST"><a onclick="this.closest('form').submit();return false;" class="nav-item nav-link" href="#">Buy</a></form>
+    <form action="{{ url_for('carts.buy_cart') }}" method="POST"><a onclick="this.closest('form').submit();return false;" class="nav-item nav-link" href="#">Buy</a></form>
 {% endblock buycartnav %}
 
 {% block content %}
@@ -13,7 +13,7 @@
               <small class="text-muted">Quantity - {{ items[item] }}</small>
               <small class="text-muted">Total - ${{ item.unit_price * items[item] }}</small>
               <div>
-                <form class="delete-item-form" action="{{ url_for('delete_cart_item', item_id=item.id) }}" method="POST"><button type="submit" class="btn btn-danger btn-sm m-1">Delete</button></form>
+                <form class="delete-item-form" action="{{ url_for('carts.delete_cart_item', item_id=item.id) }}" method="POST"><button type="submit" class="btn btn-danger btn-sm m-1">Delete</button></form>
               </div>
             </div>
             <h2>{{ item.category }}</h2>

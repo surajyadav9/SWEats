@@ -9,7 +9,7 @@
             <h5 class="card-title">{{ item.category }}</h5>
             <p class="card-text">{{ item.description }}</p>
             <p class="card-text">Unit price ${{ item.unit_price }}</p>
-            <form method='POST' action="{{ url_for('place_order', item_id=item.id) }}">
+            <form method='POST' action="{{ url_for('orders.place_order', item_id=item.id) }}">
                 {{ order_form.hidden_tag() }}
                 <fieldset class="form-group">
                     {{ order_form.quantity.label(class="form-control-label") }}
@@ -17,7 +17,7 @@
                     {{ order_form.submit(class="btn btn-outline-info") }}
                 </fieldset>
             </form>
-            <form method='POST' action="{{ url_for('add_to_cart', item_id=item.id) }}">
+            <form method='POST' action="{{ url_for('carts.add_to_cart', item_id=item.id) }}">
                 {{ cart_form.hidden_tag() }}
                 <fieldset class="form-group">
                     {{ cart_form.quantity.label(class="form-control-label") }}

@@ -43,7 +43,7 @@
             <div class="form-group">
                 {{ form.submit(class="btn btn-outline-info") }}
                 <small class="text-muted ml-2">
-                    <a href="{{ url_for('reset_request') }}">Forgot Password?</a>
+                    <a href="{{ url_for('customers.reset_request') }}">Forgot Password?</a>
                 </small>
             </div>
         </form>
@@ -51,7 +51,7 @@
     <div class="border-top pt-3">
         <small class="text-muted">
             <!-- belog 'login' is the name of the function to run not the route -->
-            Need An Account? <a href="{{ url_for('register') }}">Sign Up Now</a>
+            Need An Account? <a href="{{ url_for('customers.register') }}">Sign Up Now</a>
         </small>
     </div>
 {% endblock content %}

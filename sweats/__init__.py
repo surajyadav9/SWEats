@@ -18,8 +18,8 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 
-# The user redirected to login if unauthorized to access any route 
-login_manager.login_view = 'login'
+# The user is redirected to login if unauthorized to access any route 
+login_manager.login_view = 'customers.login'
 login_manager.login_message_category = 'info'
 
 # Mail configuration
@@ -34,5 +34,14 @@ app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
 mail = Mail(app)
 
 
-from sweats.routes import customer_routes
-from sweats.routes import admin_routes
+from sweats.admin.routes import admin
+from sweats.carts.routes import carts
+from sweats.customers.routes import customers
+from sweats.main.routes import main
+from sweats.orders.routes import orders
+
+app.register_blueprint(admin)
+app.register_blueprint(carts)
+app.register_blueprint(customers)
+app.register_blueprint(main)
+app.register_blueprint(orders)

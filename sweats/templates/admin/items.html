@@ -1,7 +1,7 @@
 {% extends "admin/home.html" %}
 
 {% block nav %}
-    <a class="nav-item nav-link" href="{{ url_for('new_model', model_name='item') }}">New Item</a>
+    <a class="nav-item nav-link" href="{{ url_for('admin.new_model', model_name='item') }}">New Item</a>
 {% endblock nav %}
 
 {% block content %}
@@ -22,8 +22,8 @@
     <tbody>
     {% for item in items %}
         <tr class="table-row" data-href="#">
-            <td><a href="{{ url_for('update_item', item_id=item.id) }}"><i class="far fa-edit"></i></a></td>
-            <td><form class="delete-item-form" action="{{ url_for('delete_model_instance', model_name='item', instance_id=item.id) }}" method="POST"><button type="submit" class="delete-button"><i class="far fa-trash-alt"></i></button></form></td>
+            <td><a href="{{ url_for('admin.update_item', item_id=item.id) }}"><i class="far fa-edit"></i></a></td>
+            <td><form class="delete-item-form" action="{{ url_for('admin.delete_model_instance', model_name='item', instance_id=item.id) }}" method="POST"><button type="submit" class="delete-button"><i class="far fa-trash-alt"></i></button></form></td>
             <th scope="row">{{ item.id }}</th>
             <td>{{ item.category }}</td>
             <td>{{ item.description }}</td>

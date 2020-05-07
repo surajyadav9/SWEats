@@ -1,22 +1,21 @@
-import os
-import secrets
-from PIL import Image
-from flask import render_template, url_for, flash, redirect, request, abort
-from flask_login import logout_user, current_user, login_required
-from sweats import app, db, bcrypt
-from sweats.forms import ItemForm, UpdateItemForm, WarehouseForm, UpdateWarehouseForm
+from flask import render_template, url_for, flash, redirect, request, abort, Blueprint
+from flask_login import current_user, login_required
+from sweats import db
+from sweats.admin.forms import ItemForm, UpdateItemForm, WarehouseForm, UpdateWarehouseForm
 from sweats.models import Item, Warehouse,OrderItem
-from sweats.routes.customer_routes import save_picture, delete_old_picture
+from sweats.main.utils import save_picture, delete_old_picture
 
+# Initializing Blueprint
+admin = Blueprint('admin', '__name__')
 
-@app.route('/admin/home')
+@admin.route('/admin/home')
 @login_required
-def admin():
+def admin_home():
     if not current_user.admin:
         abort(403)
     return render_template('admin/home.html', title='Admin Home')
 
-@app.route('/admin/<model_name>')
+@admin.route('/admin/<model_name>')
 @login_required
 def model(model_name):
     if not current_user.admin:
@@ -36,7 +35,7 @@ def model(model_name):
     items = model_instance.query.all()
     return render_template('admin/'+template_name, title=title, items=items)
 
-@app.route('/admin/<model_name>/new', methods=['GET', 'POST'])
+@admin.route('/admin/<model_name>/new', methods=['GET', 'POST'])
 @login_required
 def new_model(model_name):
     if not current_user.admin:
@@ -64,10 +63,10 @@ def new_model(model_name):
         db.session.add(item)
         db.session.commit()
         flash(f'{model_name.capitalize()} added to the database!', 'success')
-        return redirect(url_for('new_model', model_name=model_name))
+        return redirect(url_for('admin.new_model', model_name=model_name))
     return render_template('admin/'+template_name, title=title, legend=legend, form=form)
 
-@app.route('/admin/item/<int:item_id>/update', methods=['GET', 'POST'])
+@admin.route('/admin/item/<int:item_id>/update', methods=['GET', 'POST'])
 @login_required
 def update_item(item_id):
     if not current_user.admin:
@@ -90,7 +89,7 @@ def update_item(item_id):
         # Commit changes
         db.session.commit()
         flash('Item updated successfully!', 'success')
-        return redirect(url_for('update_item', item_id = item.id))
+        return redirect(url_for('admin.update_item', item_id = item.id))
     elif request.method == 'GET':
         form.category.data = item.category
         form.description.data = item.description
@@ -98,7 +97,7 @@ def update_item(item_id):
     image_file = url_for('static', filename='product_pics/' + item.image_file)
     return render_template('admin/update_item.html', title='Update Item', image_file=image_file, form=form)
 
-@app.route('/admin/warehouse/<int:warehouse_id>/update', methods=['GET', 'POST'])
+@admin.route('/admin/warehouse/<int:warehouse_id>/update', methods=['GET', 'POST'])
 @login_required
 def update_warehouse(warehouse_id):
     if not current_user.admin:
@@ -109,13 +108,13 @@ def update_warehouse(warehouse_id):
         warehouse.city = form.city.data
         db.session.commit()
         flash('Warehouse updated successfully!', 'success')
-        return redirect(url_for('update_warehouse', warehouse_id=warehouse.id))
+        return redirect(url_for('admin.update_warehouse', warehouse_id=warehouse.id))
     elif request.method == 'GET':
         form.city.data = warehouse.city
     return render_template('admin/create_update_warehouse.html', title="Update Warehouse", legend="Update Warehouse To Database", form=form)
         
 
-@app.route('/admin/<model_name>/<int:instance_id>/delete', methods=['POST'])
+@admin.route('/admin/<model_name>/<int:instance_id>/delete', methods=['POST'])
 @login_required
 def delete_model_instance(model_name, instance_id):
     if not current_user.admin:
@@ -125,16 +124,16 @@ def delete_model_instance(model_name, instance_id):
         oi = OrderItem.query.filter_by(item_id=item.id).first()
         if oi:
             flash("This item has relations with past orders. So can't be deletd due to history issues!", 'danger')
-            return redirect(url_for('model', model_name='item'))
+            return redirect(url_for('admin.model', model_name='item'))
         delete_old_picture(item.image_file, 'product_pics')
     elif model_name == 'warehouse':
         item = Warehouse.query.get_or_404(instance_id)
         if item.shipments:
             flash("This warehouse has relations with past orders. So can't be deletd due to history issues!", 'danger')
-            return redirect(url_for('model', model_name='warehouse'))
+            return redirect(url_for('admin.model', model_name='warehouse'))
 
     # Delete Item
     db.session.delete(item)
     db.session.commit()
     flash(f'{model_name.capitalize()} have been successfully deleted from database!', 'success')
-    return redirect(url_for('model', model_name=model_name))
+    return redirect(url_for('admin.model', model_name=model_name))
