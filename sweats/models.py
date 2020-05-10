@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from sweats import db, login_manager, app
+from flask import current_app
 from flask_login import UserMixin
+from sweats import db, login_manager
 
 
 @login_manager.user_loader
@@ -26,14 +27,14 @@ class Customer(db.Model, UserMixin):
 
     # Token to get password reset
     def get_reset_token(self, expires_sec=1800):
-        s = Serializer(app.config['SECRET_KEY'], expires_sec)
+        s = Serializer(current_app.config['SECRET_KEY'], expires_sec)
         # Returns a token with given payload
         return s.dumps({'customer_id': self.id}).decode('utf-8')
 
     # Verify the token, token is ok, expires or valid?
     @staticmethod
     def verify_reset_token(token):
-        s = Serializer(app.config['SECRET_KEY'])
+        s = Serializer(current_app.config['SECRET_KEY'])
         try:
             # If the token is expires of invalid, then we get an error when accessing 'customer_id'
             # Return a dictionary
