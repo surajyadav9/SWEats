@@ -33,10 +33,13 @@ def create_app(config_class=Config):
     from sweats.customers.routes import customers
     from sweats.main.routes import main
     from sweats.orders.routes import orders
+    from sweats.errors.handlers import errors
+
     app.register_blueprint(admin)
     app.register_blueprint(carts)
     app.register_blueprint(customers)
     app.register_blueprint(main)
     app.register_blueprint(orders)
+    app.register_blueprint(errors)
 
     return app
